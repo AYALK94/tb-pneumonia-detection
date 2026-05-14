@@ -6,6 +6,4 @@ __pycache__
 venv/
 *.egg-info/
 .pytest_cache/
- 
-# !! DO NOT ADD .git !!
-# Tasks need full git history at runtime (git reset --hard <commit>)
+# !! DO NOT ADD .git HERE !!
