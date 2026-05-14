@@ -1,0 +1,101 @@
+# ── Python ──────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+wheels/
+*.whl
+.installed.cfg
+lib/
+lib64/
+
+# ── Virtual Environments ────────────────────────────────────
+venv/
+.venv/
+env/
+.env/
+ENV/
+virtualenv/
+
+# ── Environment Variables ────────────────────────────────────
+.env
+.env.local
+.env.production
+.env.development
+*.env
+
+# ── pytest & Testing ────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+*.cover
+.tox/
+nosetests.xml
+test-results/
+
+# ── Model Weights ────────────────────────────────────────────
+# Keep best.pt tracked — it's your trained model
+# But ignore any other checkpoint files
+runs/
+*.pt
+!weights/best.pt
+*.pth
+*.ckpt
+*.h5
+*.onnx
+
+# ── Uploaded Files ───────────────────────────────────────────
+static/uploads/*
+!static/uploads/.gitkeep
+
+# ── Jupyter Notebooks ────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb
+
+# ── IDE & Editor ─────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+
+# ── Docker ───────────────────────────────────────────────────
+.dockerignore
+
+# ── Logs ─────────────────────────────────────────────────────
+*.log
+logs/
+*.out
+
+# ── OS Files ─────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ── Temporary Files ──────────────────────────────────────────
+*.tmp
+*.temp
+*.bak
+*.swp
+~*
+
+
+*.pt
+!weights/best.pt
+
+
+static/uploads/*
+!static/uploads/.gitkeep
