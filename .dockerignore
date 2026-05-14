@@ -1,0 +1,11 @@
+__pycache__
+*.pyc
+*.pyo
+.env
+.venv
+venv/
+*.egg-info/
+.pytest_cache/
+ 
+# !! DO NOT ADD .git !!
+# Tasks need full git history at runtime (git reset --hard <commit>)
