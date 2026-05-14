@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TB & Pneumonia Detection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f4f8;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            color: #1F4E79;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            color: #555;
+            font-size: 1rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            padding: 36px;
+            width: 100%;
+            max-width: 680px;
+            margin-bottom: 30px;
+        }
+
+        .upload-area {
+            border: 2px dashed #2E75B6;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            background: #EBF3FB;
+        }
+
+        .upload-area input[type="file"] {
+            display: none;
+        }
+
+        .upload-area label {
+            cursor: pointer;
+            display: block;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+        }
+
+        .upload-area p {
+            color: #555;
+            font-size: 0.95rem;
+        }
+
+        .upload-area span {
+            color: #2E75B6;
+            font-weight: 600;
+        }
+
+        #preview-box {
+            display: none;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        #preview-box img {
+            max-height: 200px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        #file-name {
+            margin-top: 8px;
+            font-size: 0.85rem;
+            color: #777;
+        }
+
+        .btn-analyze {
+            width: 100%;
+            padding: 14px;
+            background: #1F4E79;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-analyze:hover {
+            background: #2E75B6;
+        }
+
+        .btn-analyze:disabled {
+            background: #aaa;
+            cursor: not-allowed;
+        }
+
+        /* Loading spinner */
+        #loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #555;
+        }
+
+        .spinner {
+            width: 42px;
+            height: 42px;
+            border: 4px solid #ddd;
+            border-top-color: #2E75B6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Result card */
+        #result-card {
+            display: none;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            padding: 36px;
+            width: 100%;
+            max-width: 680px;
+        }
+
+        #result-card h2 {
+            color: #1F4E79;
+            margin-bottom: 24px;
+            font-size: 1.4rem;
+            border-bottom: 2px solid #EBF3FB;
+            padding-bottom: 12px;
+        }
+
+        .diagnosis-badge {
+            display: inline-block;
+            padding: 10px 28px;
+            border-radius: 50px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .badge-Normal    { background: #E8F5E9; color: #1B5E20; }
+        .badge-Pneumonia { background: #FFF3E0; color: #E65100; }
+        .badge-TB        { background: #FDECEA; color: #B71C1C; }
+
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            font-size: 0.95rem;
+            color: #555;
+        }
+
+        .meta-row strong {
+            color: #222;
+        }
+
+        /* Probability bars */
+        .prob-section h3 {
+            font-size: 1rem;
+            color: #333;
+            margin-bottom: 14px;
+        }
+
+        .prob-item {
+            margin-bottom: 14px;
+        }
+
+        .prob-label-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.88rem;
+            color: #444;
+        }
+
+        .prob-bar-track {
+            background: #eee;
+            border-radius: 8px;
+            height: 14px;
+            overflow: hidden;
+        }
+
+        .prob-bar-fill {
+            height: 100%;
+            border-radius: 8px;
+            transition: width 0.6s ease;
+        }
+
+        .bar-Normal    { background: linear-gradient(90deg, #43A047, #66BB6A); }
+        .bar-Pneumonia { background: linear-gradient(90deg, #FB8C00, #FFA726); }
+        .bar-TB        { background: linear-gradient(90deg, #E53935, #EF5350); }
+
+        /* Annotated image */
+        .annotated-section {
+            margin-top: 28px;
+        }
+
+        .annotated-section h3 {
+            font-size: 1rem;
+            color: #333;
+            margin-bottom: 14px;
+        }
+
+        .annotated-section img {
+            width: 100%;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+        }
+
+        /* Error box */
+        #error-box {
+            display: none;
+            background: #FDECEA;
+            border-left: 4px solid #C62828;
+            border-radius: 8px;
+            padding: 14px 18px;
+            color: #B71C1C;
+            margin-top: 16px;
+            font-size: 0.9rem;
+        }
+
+        footer {
+            margin-top: 40px;
+            color: #aaa;
+            font-size: 0.82rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🫁 TB & Pneumonia Detection</h1>
+        <p>Upload a chest X-ray to detect Normal, Pneumonia, or TB using YOLOv8</p>
+    </header>
+
+    <!-- Upload Card -->
+    <div class="card">
+        <div class="upload-area" id="drop-zone">
+            <label for="file-input">
+                <div class="upload-icon">📂</div>
+                <p><span>Click to upload</span> or drag and drop</p>
+                <p style="margin-top:6px; font-size:0.82rem;">Supported: JPG, JPEG, PNG · Max 10 MB</p>
+            </label>
+            <input type="file" id="file-input" accept=".jpg,.jpeg,.png">
+        </div>
+
+        <!-- Image preview -->
+        <div id="preview-box">
+            <img id="preview-img" src="" alt="Preview">
+            <p id="file-name"></p>
+        </div>
+
+        <button class="btn-analyze" id="analyze-btn" disabled>
+            Analyze X-Ray
+        </button>
+
+        <!-- Error -->
+        <div id="error-box"></div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading">
+        <div class="spinner"></div>
+        <p>Analyzing X-ray, please wait...</p>
+    </div>
+
+    <!-- Result -->
+    <div id="result-card">
+        <h2>📋 Diagnosis Result</h2>
+
+        <div id="diagnosis-badge" class="diagnosis-badge"></div>
+
+        <div class="meta-row">
+            <span>Confidence: <strong id="conf-value"></strong>%</span>
+            <span>Level: <strong id="conf-label"></strong></span>
+        </div>
+
+        <div class="prob-section">
+            <h3>Class Probabilities</h3>
+            <div id="prob-bars"></div>
+        </div>
+
+        <div class="annotated-section">
+            <h3>Annotated X-Ray</h3>
+            <img id="annotated-img" src="" alt="Annotated X-Ray">
+        </div>
+    </div>
+
+    <footer>
+        TB & Pneumonia Detection · YOLOv8 + FastAPI · Project Silver
+    </footer>
+
+    <script>
+        const fileInput   = document.getElementById('file-input');
+        const previewBox  = document.getElementById('preview-box');
+        const previewImg  = document.getElementById('preview-img');
+        const fileName    = document.getElementById('file-name');
+        const analyzeBtn  = document.getElementById('analyze-btn');
+        const loading     = document.getElementById('loading');
+        const resultCard  = document.getElementById('result-card');
+        const errorBox    = document.getElementById('error-box');
+        const dropZone    = document.getElementById('drop-zone');
+
+        // File selected via click
+        fileInput.addEventListener('change', function () {
+            handleFile(this.files[0]);
+        });
+
+        // Drag and drop
+        dropZone.addEventListener('dragover', e => {
+            e.preventDefault();
+            dropZone.style.background = '#EBF3FB';
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.style.background = '';
+        });
+
+        dropZone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropZone.style.background = '';
+            const file = e.dataTransfer.files[0];
+            if (file) handleFile(file);
+        });
+
+        function handleFile(file) {
+            if (!file) return;
+
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = e => {
+                previewImg.src  = e.target.result;
+                fileName.textContent = file.name;
+                previewBox.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+
+            analyzeBtn.disabled = false;
+            resultCard.style.display = 'none';
+            errorBox.style.display   = 'none';
+        }
+
+        // Analyze button click
+        analyzeBtn.addEventListener('click', async () => {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            // Show loading
+            analyzeBtn.disabled      = true;
+            loading.style.display    = 'block';
+            resultCard.style.display = 'none';
+            errorBox.style.display   = 'none';
+
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const res  = await fetch('/predict', { method: 'POST', body: formData });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    showError(data.detail || 'Something went wrong.');
+                    return;
+                }
+
+                showResult(data);
+
+            } catch (err) {
+                showError('Network error — please try again.');
+            } finally {
+                loading.style.display = 'none';
+                analyzeBtn.disabled   = false;
+            }
+        });
+
+        function showResult(data) {
+            // Badge
+            const badge = document.getElementById('diagnosis-badge');
+            badge.textContent  = data.predicted_class;
+            badge.className    = `diagnosis-badge badge-${data.predicted_class}`;
+
+            // Confidence
+            document.getElementById('conf-value').textContent = data.confidence;
+            document.getElementById('conf-label').textContent = data.confidence_label;
+
+            // Probability bars
+            const barsDiv = document.getElementById('prob-bars');
+            barsDiv.innerHTML = '';
+            for (const [cls, prob] of Object.entries(data.probabilities)) {
+                barsDiv.innerHTML += `
+                    <div class="prob-item">
+                        <div class="prob-label-row">
+                            <span>${cls}</span>
+                            <span>${prob}%</span>
+                        </div>
+                        <div class="prob-bar-track">
+                            <div class="prob-bar-fill bar-${cls}" style="width: ${prob}%"></div>
+                        </div>
+                    </div>`;
+            }
+
+            // Annotated image
+            document.getElementById('annotated-img').src = data.annotated_image;
+
+            resultCard.style.display = 'block';
+            resultCard.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function showError(msg) {
+            errorBox.textContent     = '⚠️  ' + msg;
+            errorBox.style.display   = 'block';
+            resultCard.style.display = 'none';
+        }
+    </script>
+
+</body>
+</html>
